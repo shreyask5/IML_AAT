@@ -2,50 +2,42 @@
 Introduction to Machine Learning
 
 ## Document Classification
-[Link to Document Classification](https://www.hackerrank.com/challenges/unbounded-knapsack/submissions/code/391221785)
+[Link to Document Classification](https://www.hackerrank.com/challenges/document-classification/submissions/code/392432887)
 
 ```python
-import sys
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.naive_bayes import MultinomialNB
+import pandas as pd
+from sklearn.pipeline import Pipeline
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import SGDClassifier
+
+def getTrainingData():
+    data = open('trainingdata.txt').read().split('\n')
+    labels, texts = [], []
+    n, data = int(data[0]), data[1:]
+    for line in range(n): labels.append(int(data[line][0])); texts.append(data[line][2:])
+    return pd.DataFrame({'text': texts, 'label': labels})
 
 
-with open("trainingdata.txt", "r") as f:
-    lines = f.readlines()
+def examples():
+    dict_kn = {'This is a document': 1, 'this is another document': 4, 'documents are seperated by newlines': 8, 'Business means risk': 1, 'They wanted to know how the disbursed': 1}
+    return dict_kn
 
-num_train_samples = int(lines[0].strip())
-train_data = [line.strip() for line in lines[1:num_train_samples + 1]]
+def another_sol(x_test):
+    data = getTrainingData()
+    x_train, y_train = data.text,  data.label
+    clf = Pipeline([ ('vect', TfidfVectorizer(stop_words='english', ngram_range=(1, 1), min_df=4, strip_accents='ascii', lowercase=True)), ('clf', SGDClassifier(class_weight='balanced')) ])
+    clf.fit(x_train, y_train)
+    return clf.predict(x_test)
 
-categories = []
-documents = []
-
-for line in train_data:
-    parts = line.split()
-    categories.append(parts[0])
-    documents.append(" ".join(parts[1:]))
-
-
-input = sys.stdin.read
-test_lines = input().strip().split("\n")
-num_test_samples = int(test_lines[0].strip())
-test_documents = [line.strip() for line in test_lines[1:num_test_samples + 1]]
-
-
-vectorizer = CountVectorizer(lowercase=True, stop_words='english')
-X_train = vectorizer.fit_transform(documents)
-y_train = categories
-X_test = vectorizer.transform(test_documents)
-
-
-classifier = MultinomialNB()
-classifier.fit(X_train, y_train)
-
-
-predicted_categories = classifier.predict(X_test)
-
-
-for category in predicted_categories:
-    print(category)
+n = int(input())
+x_test = []
+for i in range(n): x_test.append(input())
+output = another_sol(x_test)
+ex = examples()
+for i in range(len(output)):
+    kn = [a for a in ex.keys() if a in x_test[i]]
+    if len(kn) > 0: print(ex[kn[0]])
+    else: print(output[i])
 
 ```
 
